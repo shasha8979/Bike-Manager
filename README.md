@@ -1,8 +1,8 @@
-# Bike Manager
-
 <p align="center">
-  <img src="src/Logo.png" alt="Bike Manager Logo" width="300">
+  <img src="src/Logo.png" alt="Bike Manager Logo" width="600">
 </p>
+
+# Bike Manager
 
 <p align="center">
   <strong>🏍️ Gestiona el mantenimiento, la documentación y la información técnica de tu motocicleta en un solo lugar.</strong>
