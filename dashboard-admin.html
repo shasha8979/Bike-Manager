@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BikeManager — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700;900&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard-admin.css" />  
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      BikeManager
+      <span class="sidebar-brand-role">Admin</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sb-name">—</div>
+      <div class="sidebar-user-role">Administrador</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Panel</div>
+      <a class="sidebar-link active" onclick="showPanel('dashboard')">
+        <span class="icon">📊</span> Resumen
+      </a>
+      <div class="sidebar-label">Gestión</div>
+      <a class="sidebar-link" onclick="showPanel('usuarios')">
+        <span class="icon">👥</span> Usuarios
+      </a>
+      <a class="sidebar-link" onclick="showPanel('motos')">
+        <span class="icon">🏍️</span> Motos registradas
+      </a>
+      <a class="sidebar-link" onclick="showPanel('alertas')">
+        <span class="icon">🔔</span> Alertas globales
+        <span style="background:var(--red);color:#0d0d0d;font-family:'Roboto Mono',monospace;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:auto" id="sb-badge">0</span>
+      </a>
+      <div class="sidebar-label">Reportes</div>
+      <a class="sidebar-link" onclick="showPanel('estadisticas')">
+        <span class="icon">📈</span> Estadísticas
+      </a>
+      <a class="sidebar-link" onclick="showPanel('reportes')">
+        <span class="icon">📄</span> Exportar
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title" id="topbar-title">Resumen</span>
+        <span class="topbar-tag">Admin</span>
+      </div>
+      <a href="index.html" class="topbar-back">← Sitio principal</a>
+    </div>
+
+    <!-- PANEL: DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="chart-block" style="margin-bottom:24px">
+        <div class="chart-title">Mantenimientos por tipo — usuarios activos</div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="two-col">
+        <div class="chart-block">
+          <div class="chart-title">Alertas críticas</div>
+          <div id="dash-crits"></div>
+        </div>
+        <div class="chart-block">
+          <div class="chart-title">Usuarios recientes</div>
+          <div id="dash-recent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: USUARIOS -->
+    <div class="panel" id="panel-usuarios">
+      <div class="section-hd"><h3>Gestión de Usuarios</h3></div>
+      <div class="search-bar">
+        <input class="search-input" id="search-users" placeholder="Buscar por nombre o correo…" oninput="renderUsuarios()" />
+      </div>
+      <div class="tbl-wrap"><table id="tbl-users">
+        <thead><tr>
+          <th>Nombre</th><th>Correo</th><th>Teléfono</th>
+          <th>Rol</th><th>Moto</th><th>Alertas</th><th>Acción</th>
+        </tr></thead>
+        <tbody id="tbody-users"></tbody>
+      </table></div>
+    </div>
+
+    <!-- PANEL: MOTOS -->
+    <div class="panel" id="panel-motos">
+      <div class="section-hd"><h3>Motos Registradas</h3></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr>
+          <th>Propietario</th><th>Marca / Modelo</th><th>Año</th>
+          <th>Placa</th><th>Km actuales</th><th>Mant. pendientes</th>
+        </tr></thead>
+        <tbody id="tbody-motos"></tbody>
+      </table></div>
+    </div>
+
+    <!-- PANEL: ALERTAS GLOBALES -->
+    <div class="panel" id="panel-alertas">
+      <div class="section-hd"><h3>Alertas Globales</h3></div>
+      <div class="alert-list" id="all-alerts"></div>
+    </div>
+
+    <!-- PANEL: ESTADÍSTICAS -->
+    <div class="panel" id="panel-estadisticas">
+      <div class="section-hd"><h3>Estadísticas Generales</h3></div>
+      <div class="two-col" style="margin-top:0">
+        <div class="chart-block">
+          <div class="chart-title">Distribución de roles</div>
+          <div id="stats-roles"></div>
+        </div>
+        <div class="chart-block">
+          <div class="chart-title">Estado documental global</div>
+          <div id="stats-docs"></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="chart-block">
+          <div class="chart-title">Estado de mantenimientos</div>
+          <div id="stats-mant"></div>
+        </div>
+        <div class="chart-block">
+          <div class="chart-title">Cobertura de registro</div>
+          <div id="stats-coverage"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: REPORTES -->
+    <div class="panel" id="panel-reportes">
+      <div class="section-hd"><h3>Exportar Reportes</h3></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <div><div class="report-card-title">Reporte de usuarios</div>
+          <div class="report-card-desc">Lista completa de usuarios con datos de contacto, rol y estado de su moto.</div></div>
+          <button class="btn-report" onclick="exportCSV('users')">Descargar CSV</button>
+        </div>
+        <div class="report-card">
+          <div><div class="report-card-title">Motos y km</div>
+          <div class="report-card-desc">Inventario de motos registradas, kilometraje y mantenimientos pendientes.</div></div>
+          <button class="btn-report" onclick="exportCSV('motos')">Descargar CSV</button>
+        </div>
+        <div class="report-card">
+          <div><div class="report-card-title">Alertas activas</div>
+          <div class="report-card-desc">Todos los documentos vencidos o por vencer y mantenimientos atrasados.</div></div>
+          <button class="btn-report" onclick="exportCSV('alertas')">Descargar CSV</button>
+        </div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">Vista previa — últimos datos</div>
+        <div id="report-preview"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── SESSION ──────────────────────────────────────────────────
+const session = JSON.parse(localStorage.getItem('bm_session') || 'null');
+if (!session) { window.location.href = 'auth.html'; }
+if (session && session.role !== 'admin') { window.location.href = 'dashboard-user.html'; }
+
+function getUsers() { return JSON.parse(localStorage.getItem('bm_users') || '[]'); }
+function saveUsers(u) { localStorage.setItem('bm_users', JSON.stringify(u)); }
+
+// ── HELPERS ──────────────────────────────────────────────────
+function docEstado(vence) {
+  const diff = (new Date(vence) - new Date()) / 86400000;
+  if (diff < 0) return 'vencido'; if (diff < 30) return 'proximo'; return 'ok';
+}
+function mantEstado(m, km) {
+  if (km >= m.prox_km) return 'vencido';
+  if (km >= m.prox_km - 500) return 'proximo';
+  return 'ok';
+}
+function getUserAlerts(user) {
+  const alerts = []; const km = user.moto?.km || 0;
+  (user.mantenimientos || []).forEach(m => {
+    const est = m.estado || mantEstado(m, km);
+    if (est === 'vencido') alerts.push({ type:'error', text: user.nombre+': '+m.tipo+' vencido', sub:'Km '+m.prox_km.toLocaleString() });
+    else if (est === 'proximo') alerts.push({ type:'warn', text: user.nombre+': '+m.tipo+' próximo', sub: 'A '+(m.prox_km-km)+' km' });
+  });
+  (user.documentos || []).forEach(d => {
+    const est = docEstado(d.vence);
+    if (est === 'vencido') alerts.push({ type:'error', text: user.nombre+': '+d.nombre+' vencido', sub:'Venció '+d.vence });
+    else if (est === 'proximo') alerts.push({ type:'warn', text: user.nombre+': '+d.nombre+' por vencer', sub:'Vence '+d.vence });
+  });
+  return alerts;
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+const TITLES = { dashboard:'Resumen', usuarios:'Usuarios', motos:'Motos', alertas:'Alertas', estadisticas:'Estadísticas', reportes:'Reportes' };
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('topbar-title').textContent = TITLES[name];
+  document.querySelectorAll('.sidebar-link').forEach(l => { if (l.getAttribute('onclick')?.includes(name)) l.classList.add('active'); });
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function render() {
+  const users = getUsers();
+  const regularUsers = users.filter(u => u.role !== 'admin');
+  const allAlerts = users.flatMap(u => u.role !== 'admin' ? getUserAlerts(u) : []);
+  const critAlerts = allAlerts.filter(a => a.type === 'error');
+  const motosCount = regularUsers.filter(u => u.moto).length;
+
+  // Sidebar
+  document.getElementById('sb-name').textContent = session.nombre;
+  document.getElementById('sb-badge').textContent = critAlerts.length;
+
+  // ── KPIs
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><span class="kpi-val kpi-ora">${regularUsers.length}</span><span class="kpi-lbl">Usuarios totales</span></div>
+    <div class="kpi"><span class="kpi-val kpi-ok">${motosCount}</span><span class="kpi-lbl">Motos registradas</span></div>
+    <div class="kpi"><span class="kpi-val ${critAlerts.length>0?'kpi-err':'kpi-ok'}">${critAlerts.length}</span><span class="kpi-lbl">Alertas críticas</span></div>
+    <div class="kpi"><span class="kpi-val kpi-warn">${allAlerts.filter(a=>a.type==='warn').length}</span><span class="kpi-lbl">Advertencias</span></div>
+  `;
+
+  // ── BAR CHART mantenimientos por tipo
+  const tipos = {};
+  regularUsers.forEach(u => {
+    (u.mantenimientos || []).forEach(m => { tipos[m.tipo] = (tipos[m.tipo]||0)+1; });
+  });
+  const barMax = Math.max(...Object.values(tipos), 1);
+  const barChart = document.getElementById('bar-chart');
+  if (Object.keys(tipos).length === 0) {
+    barChart.innerHTML = '<p style="color:var(--muted);font-size:.8rem">Sin datos de mantenimiento registrados.</p>';
+  } else {
+    barChart.innerHTML = Object.entries(tipos).map(([t,v]) => `
+      <div class="bar-col">
+        <div class="bar-val">${v}</div>
+        <div class="bar" style="height:${Math.max((v/barMax)*100,8)}px"></div>
+        <div class="bar-lbl">${t.split(' ')[0]}</div>
+      </div>`).join('');
+  }
+
+  // ── DASH CRITS
+  const dc = document.getElementById('dash-crits');
+  dc.innerHTML = critAlerts.length === 0
+    ? '<p style="color:var(--muted);font-size:.875rem">✅ Sin alertas críticas activas.</p>'
+    : critAlerts.slice(0,4).map(a =>
+        `<div class="alert-item error" style="margin-bottom:8px">
+          <span>🔴</span>
+          <div><div class="alert-item-text">${a.text}</div><div class="alert-item-sub">${a.sub}</div></div>
+        </div>`).join('');
+
+  // ── RECENT USERS
+  const dr = document.getElementById('dash-recent');
+  dr.innerHTML = regularUsers.slice(0,4).map(u =>
+    `<div class="stat-row">
+      <div>
+        <div style="font-size:.875rem;font-weight:500">${u.nombre} ${u.apellido}</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)">${u.email}</div>
+      </div>
+      <div class="stat-row-val">${u.moto ? u.moto.marca+' '+u.moto.modelo : '—'}</div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:.875rem">Sin usuarios.</p>';
+
+  // ── USUARIOS TABLE
+  renderUsuarios();
+
+  // ── MOTOS TABLE
+  const tbm = document.getElementById('tbody-motos');
+  const conMoto = regularUsers.filter(u => u.moto);
+  tbm.innerHTML = conMoto.length === 0
+    ? `<tr><td colspan="6" style="color:var(--muted);padding:24px">Ningún usuario registró su moto aún.</td></tr>`
+    : conMoto.map(u => {
+        const mantPend = (u.mantenimientos || []).filter(m => {
+          const est = m.estado || mantEstado(m, u.moto.km);
+          return est === 'vencido' || est === 'proximo';
+        }).length;
+        return `<tr>
+          <td class="td-name">${u.nombre} ${u.apellido}</td>
+          <td>${u.moto.marca} ${u.moto.modelo}</td>
+          <td class="td-mono">${u.moto.año}</td>
+          <td class="td-mono">${u.moto.placa}</td>
+          <td class="td-mono">${u.moto.km.toLocaleString()} km</td>
+          <td>${mantPend > 0 ? `<span class="tag tag-warn">${mantPend} pendiente(s)</span>` : '<span class="tag tag-ok">Al día</span>'}</td>
+        </tr>`;
+      }).join('');
+
+  // ── ALL ALERTS
+  const aa = document.getElementById('all-alerts');
+  aa.innerHTML = allAlerts.length === 0
+    ? '<p style="color:var(--muted)">✅ Sin alertas activas en ningún usuario.</p>'
+    : allAlerts.map(a => `
+        <div class="alert-item ${a.type}">
+          <span>${a.type==='error'?'🔴':'🟡'}</span>
+          <div><div class="alert-item-text">${a.text}</div><div class="alert-item-sub">${a.sub}</div></div>
+        </div>`).join('');
+
+  // ── ESTADÍSTICAS
+  const totalDocs = regularUsers.reduce((s,u) => s + (u.documentos||[]).length, 0);
+  const docsVig   = regularUsers.reduce((s,u) => s + (u.documentos||[]).filter(d=>docEstado(d.vence)==='ok').length, 0);
+  const docsVenc  = regularUsers.reduce((s,u) => s + (u.documentos||[]).filter(d=>docEstado(d.vence)==='vencido').length, 0);
+  const totalMant = regularUsers.reduce((s,u) => s + (u.mantenimientos||[]).length, 0);
+  const mantOk    = regularUsers.reduce((s,u) => s + (u.mantenimientos||[]).filter(m=>(m.estado||mantEstado(m,u.moto?.km||0))==='ok').length, 0);
+  const mantVenc  = regularUsers.reduce((s,u) => s + (u.mantenimientos||[]).filter(m=>(m.estado||mantEstado(m,u.moto?.km||0))==='vencido').length, 0);
+
+  const renderStats = (id, rows) => {
+    document.getElementById(id).innerHTML = rows.map(([label,val,color]) =>
+      `<div class="stat-row">
+        <span class="stat-row-label">${label}</span>
+        <span class="stat-row-val" style="color:${color||'var(--text)'}">${val}</span>
+      </div>`).join('');
+  };
+  renderStats('stats-roles', [
+    ['Usuarios registrados', regularUsers.length, 'var(--orange)'],
+    ['Administradores', users.filter(u=>u.role==='admin').length, 'var(--orange)'],
+    ['Usuarios activos (con moto)', motosCount, 'var(--green)'],
+  ]);
+  renderStats('stats-docs', [
+    ['Total documentos cargados', totalDocs, 'var(--text)'],
+    ['Vigentes', docsVig, 'var(--green)'],
+    ['Vencidos', docsVenc, 'var(--red)'],
+    ['Por vencer (30 días)', totalDocs-docsVig-docsVenc, 'var(--yellow)'],
+  ]);
+  renderStats('stats-mant', [
+    ['Total mantenimientos', totalMant, 'var(--text)'],
+    ['Al día', mantOk, 'var(--green)'],
+    ['Vencidos', mantVenc, 'var(--red)'],
+    ['Por vencer', totalMant-mantOk-mantVenc, 'var(--yellow)'],
+  ]);
+  renderStats('stats-coverage', [
+    ['Usuarios totales', regularUsers.length, 'var(--text)'],
+    ['Con moto registrada', motosCount, 'var(--orange)'],
+    ['Con documentos cargados', regularUsers.filter(u=>(u.documentos||[]).length>0).length, 'var(--green)'],
+    ['Sin actividad', regularUsers.filter(u=>!u.moto).length, 'var(--muted)'],
+  ]);
+
+  // ── REPORT PREVIEW
+  document.getElementById('report-preview').innerHTML = `
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Usuario</th><th>Correo</th><th>Moto</th><th>Km</th><th>Alertas</th></tr></thead>
+      <tbody>${regularUsers.map(u => {
+        const a = getUserAlerts(u).length;
+        return `<tr>
+          <td class="td-name">${u.nombre} ${u.apellido}</td>
+          <td class="td-mono">${u.email}</td>
+          <td>${u.moto ? u.moto.marca+' '+u.moto.modelo : '—'}</td>
+          <td class="td-mono">${u.moto ? u.moto.km.toLocaleString()+' km' : '—'}</td>
+          <td>${a > 0 ? `<span class="tag tag-warn">${a}</span>` : '<span class="tag tag-ok">0</span>'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+function renderUsuarios() {
+  const users = getUsers();
+  const q = document.getElementById('search-users')?.value?.toLowerCase() || '';
+  const regularUsers = users.filter(u => u.role !== 'admin');
+  const filtered = regularUsers.filter(u =>
+    (u.nombre+' '+u.apellido+' '+u.email).toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('tbody-users');
+  if (!tbody) return;
+  tbody.innerHTML = filtered.length === 0
+    ? `<tr><td colspan="7" style="color:var(--muted);padding:24px">No se encontraron usuarios.</td></tr>`
+    : filtered.map(u => {
+        const alerts = getUserAlerts(u).length;
+        return `<tr>
+          <td class="td-name">${u.nombre} ${u.apellido}</td>
+          <td class="td-mono">${u.email}</td>
+          <td class="td-mono">${u.tel || '—'}</td>
+          <td><span class="tag ${u.role==='admin'?'tag-admin':'tag-user'}">${u.role}</span></td>
+          <td>${u.moto ? u.moto.marca+' '+u.moto.modelo : '<span style="color:var(--muted)">Sin moto</span>'}</td>
+          <td>${alerts > 0 ? `<span class="tag tag-err">${alerts} alerta(s)</span>` : '<span class="tag tag-ok">Ok</span>'}</td>
+          <td>
+            <button class="btn-sm danger" onclick="deleteUser('${u.id}')">Eliminar</button>
+          </td>
+        </tr>`;
+      }).join('');
+}
+
+function deleteUser(id) {
+  if (!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return;
+  const users = getUsers().filter(u => u.id !== id);
+  saveUsers(users); render();
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────
+function exportCSV(type) {
+  const users = getUsers().filter(u => u.role !== 'admin');
+  let csv = '', filename = '';
+
+  if (type === 'users') {
+    filename = 'bikemanager_usuarios.csv';
+    csv = 'Nombre,Apellido,Correo,Telefono,Rol,Moto,Km\n' +
+      users.map(u => `${u.nombre},${u.apellido},${u.email},${u.tel||''},${u.role},${u.moto?u.moto.marca+' '+u.moto.modelo:''},${u.moto?.km||''}`).join('\n');
+  } else if (type === 'motos') {
+    filename = 'bikemanager_motos.csv';
+    csv = 'Propietario,Marca,Modelo,Anio,Placa,Km\n' +
+      users.filter(u=>u.moto).map(u => `${u.nombre} ${u.apellido},${u.moto.marca},${u.moto.modelo},${u.moto.año},${u.moto.placa},${u.moto.km}`).join('\n');
+  } else {
+    filename = 'bikemanager_alertas.csv';
+    const rows = users.flatMap(u => getUserAlerts(u).map(a => `${u.nombre} ${u.apellido},${a.type},${a.text},${a.sub}`));
+    csv = 'Usuario,Tipo,Alerta,Detalle\n' + rows.join('\n');
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click();
+}
+
+function logout() {
+  localStorage.removeItem('bm_session');
+  window.location.href = 'auth.html';
+}
+
+render();
+</script>
+</body>
+</html>
