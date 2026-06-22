@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BikeManager — Mi Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700;900&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard-user.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      BikeManager
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sb-name">—</div>
+      <div class="sidebar-user-role">Usuario</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Panel</div>
+      <a class="sidebar-link active" onclick="showPanel('dashboard')" href="#">
+        <span class="icon">🏠</span> Resumen
+      </a>
+      <a class="sidebar-link" onclick="showPanel('moto')" href="#">
+        <span class="icon">🏍️</span> Mi Moto
+      </a>
+      <div class="sidebar-label">Gestión</div>
+      <a class="sidebar-link" onclick="showPanel('mantenimientos')" href="#">
+        <span class="icon">🔧</span> Mantenimientos
+      </a>
+      <a class="sidebar-link" onclick="showPanel('documentos')" href="#">
+        <span class="icon">📋</span> Documentos
+      </a>
+      <a class="sidebar-link" onclick="showPanel('alertas')" href="#">
+        <span class="icon">🔔</span> Alertas
+        <span class="alert-badge" id="sb-badge" style="margin-left:auto">0</span>
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Resumen</span>
+      <div class="topbar-right">
+        <span id="topbar-alerts" style="font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted)"></span>
+        <a href="index.html" class="topbar-back">← Sitio principal</a>
+      </div>
+    </div>
+
+    <!-- PANEL: DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="two-col">
+        <div class="dash-block">
+          <div class="dash-block-title">Mi moto</div>
+          <div id="moto-summary"></div>
+        </div>
+        <div class="dash-block">
+          <div class="dash-block-title">Alertas activas</div>
+          <div class="alert-list" id="dash-alerts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: MOTO -->
+    <div class="panel" id="panel-moto">
+      <div class="section-hd">
+        <h3>Mi Motocicleta</h3>
+        <button class="btn-add" onclick="openMotoModal()">Editar datos</button>
+      </div>
+      <div id="moto-full"></div>
+    </div>
+
+    <!-- PANEL: MANTENIMIENTOS -->
+    <div class="panel" id="panel-mantenimientos">
+      <div class="section-hd">
+        <h3>Historial de Mantenimientos</h3>
+        <button class="btn-add" onclick="openMantModal()">+ Registrar</button>
+      </div>
+      <div class="mant-list" id="mant-list"></div>
+    </div>
+
+    <!-- PANEL: DOCUMENTOS -->
+    <div class="panel" id="panel-documentos">
+      <div class="section-hd">
+        <h3>Documentación</h3>
+        <button class="btn-add" onclick="openDocModal()">+ Agregar</button>
+      </div>
+      <div class="doc-grid" id="doc-grid"></div>
+    </div>
+
+    <!-- PANEL: ALERTAS -->
+    <div class="panel" id="panel-alertas">
+      <div class="section-hd"><h3>Todas las Alertas</h3></div>
+      <div class="alert-list" id="all-alerts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MOTO -->
+<div class="modal-overlay" id="modal-moto">
+  <div class="modal">
+    <div class="modal-title">Datos de mi moto</div>
+    <div class="modal-form">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Marca</label><input class="form-input" id="m-marca" placeholder="KTM" /></div>
+        <div class="form-field"><label class="form-label">Modelo</label><input class="form-input" id="m-modelo" placeholder="Duke 390" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Año</label><input class="form-input" id="m-anio" type="number" placeholder="2022" /></div>
+        <div class="form-field"><label class="form-label">Color</label><input class="form-input" id="m-color" placeholder="Naranja" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Placa</label><input class="form-input" id="m-placa" placeholder="BKM-123" /></div>
+        <div class="form-field"><label class="form-label">Km actuales</label><input class="form-input" id="m-km" type="number" placeholder="18400" /></div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal('modal-moto')">Cancelar</button>
+        <button class="btn-save" onclick="saveMoto()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MANTENIMIENTO -->
+<div class="modal-overlay" id="modal-mant">
+  <div class="modal">
+    <div class="modal-title">Registrar mantenimiento</div>
+    <div class="modal-form">
+      <div class="form-field"><label class="form-label">Tipo de mantenimiento</label>
+        <select class="form-select" id="mant-tipo">
+          <option value="Cambio de aceite">Cambio de aceite</option>
+          <option value="Filtro de aire">Filtro de aire</option>
+          <option value="Revisión de frenos">Revisión de frenos</option>
+          <option value="Cadena y piñones">Cadena y piñones</option>
+          <option value="Bujías">Bujías</option>
+          <option value="Neumáticos">Neumáticos</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Fecha</label><input class="form-input" id="mant-fecha" type="date" /></div>
+        <div class="form-field"><label class="form-label">Km en el momento</label><input class="form-input" id="mant-km" type="number" placeholder="18000" /></div>
+      </div>
+      <div class="form-field"><label class="form-label">Próximo servicio (km)</label><input class="form-input" id="mant-prox" type="number" placeholder="21000" /></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal('modal-mant')">Cancelar</button>
+        <button class="btn-save" onclick="saveMant()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DOCUMENTO -->
+<div class="modal-overlay" id="modal-doc">
+  <div class="modal">
+    <div class="modal-title">Agregar documento</div>
+    <div class="modal-form">
+      <div class="form-field"><label class="form-label">Nombre del documento</label>
+        <select class="form-select" id="doc-nombre">
+          <option>SOAT</option>
+          <option>VTV / Rev. Técnica</option>
+          <option>Licencia conducir</option>
+          <option>Póliza de seguro</option>
+          <option>Cédula verde</option>
+          <option>Cédula azul</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Fecha de vencimiento</label><input class="form-input" id="doc-vence" type="date" /></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal('modal-doc')">Cancelar</button>
+        <button class="btn-save" onclick="saveDoc()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SESSION CHECK ─────────────────────────────────────────────
+const session = JSON.parse(localStorage.getItem('bm_session') || 'null');
+if (!session) { window.location.href = 'auth.html'; }
+if (session && session.role === 'admin') { window.location.href = 'dashboard-admin.html'; }
+
+const TITLES = {
+  dashboard: 'Resumen', moto: 'Mi Moto',
+  mantenimientos: 'Mantenimientos', documentos: 'Documentos', alertas: 'Alertas'
+};
+
+function getUser() {
+  const users = JSON.parse(localStorage.getItem('bm_users') || '[]');
+  return users.find(u => u.id === session.id);
+}
+function saveUser(user) {
+  const users = JSON.parse(localStorage.getItem('bm_users') || '[]');
+  const idx = users.findIndex(u => u.id === session.id);
+  if (idx > -1) { users[idx] = user; localStorage.setItem('bm_users', JSON.stringify(users)); }
+}
+
+// ── PANEL NAVIGATION ─────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('topbar-title').textContent = TITLES[name];
+  const links = document.querySelectorAll('.sidebar-link');
+  const map = ['dashboard','moto','mantenimientos','documentos','alertas'];
+  // find by onclick
+  links.forEach(l => { if (l.getAttribute('onclick')?.includes(name)) l.classList.add('active'); });
+  render();
+  return false;
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function docEstado(vence) {
+  const diff = (new Date(vence) - new Date()) / 86400000;
+  if (diff < 0)  return 'vencido';
+  if (diff < 30) return 'proximo';
+  return 'ok';
+}
+function estadoTag(e) {
+  if (e === 'vencido') return '<span class="tag tag-vencido">Vencido</span>';
+  if (e === 'proximo') return '<span class="tag tag-proximo">Por vencer</span>';
+  return '<span class="tag tag-ok">Vigente</span>';
+}
+function mantTag(e) {
+  if (e === 'vencido') return '<span class="tag tag-vencido">Vencido</span>';
+  if (e === 'proximo') return '<span class="tag tag-proximo">Próximo</span>';
+  return '<span class="tag tag-ok">Al día</span>';
+}
+function mantEstado(m, kmActual) {
+  if (kmActual >= m.prox_km) return 'vencido';
+  if (kmActual >= m.prox_km - 500) return 'proximo';
+  return 'ok';
+}
+
+function getAlerts(user) {
+  const alerts = [];
+  const km = user.moto?.km || 0;
+  (user.mantenimientos || []).forEach(m => {
+    const est = m.estado || mantEstado(m, km);
+    if (est === 'vencido') alerts.push({ type: 'error', text: m.tipo + ' vencido', sub: 'Próximo a los ' + m.prox_km.toLocaleString() + ' km' });
+    else if (est === 'proximo') alerts.push({ type: 'warn', text: m.tipo + ' próximo', sub: 'A ' + (m.prox_km - km) + ' km' });
+  });
+  (user.documentos || []).forEach(d => {
+    const est = docEstado(d.vence);
+    if (est === 'vencido') alerts.push({ type: 'error', text: d.nombre + ' vencido', sub: 'Venció el ' + d.vence });
+    else if (est === 'proximo') alerts.push({ type: 'warn', text: d.nombre + ' por vencer', sub: 'Vence el ' + d.vence });
+  });
+  return alerts;
+}
+
+function renderAlertItem(a) {
+  const icons = { error: '🔴', warn: '🟡', ok: '🟢' };
+  return `<div class="alert-item ${a.type}">
+    <span class="alert-item-icon">${icons[a.type]}</span>
+    <div><div class="alert-item-text">${a.text}</div><div class="alert-item-sub">${a.sub}</div></div>
+  </div>`;
+}
+
+function render() {
+  const user = getUser();
+  if (!user) return;
+
+  // Sidebar name
+  document.getElementById('sb-name').textContent = user.nombre + ' ' + user.apellido;
+
+  const alerts = getAlerts(user);
+  const errCount = alerts.filter(a => a.type === 'error').length;
+  document.getElementById('sb-badge').textContent = alerts.length;
+  document.getElementById('topbar-alerts').textContent = alerts.length > 0 ? alerts.length + ' alerta(s) activa(s)' : '';
+
+  // ── KPIs
+  const km = user.moto?.km || 0;
+  const docsOk = (user.documentos || []).filter(d => docEstado(d.vence) === 'ok').length;
+  const mantOk = (user.mantenimientos || []).filter(m => (m.estado || mantEstado(m, km)) === 'ok').length;
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><span class="kpi-val kpi-ora">${km.toLocaleString()}</span><span class="kpi-lbl">Km actuales</span></div>
+    <div class="kpi"><span class="kpi-val ${errCount>0?'kpi-err':'kpi-ok'}">${alerts.length}</span><span class="kpi-lbl">Alertas activas</span></div>
+    <div class="kpi"><span class="kpi-val kpi-ok">${docsOk}</span><span class="kpi-lbl">Documentos vigentes</span></div>
+    <div class="kpi"><span class="kpi-val kpi-ok">${mantOk}</span><span class="kpi-lbl">Mant. al día</span></div>
+  `;
+
+  // ── MOTO SUMMARY
+  const ms = document.getElementById('moto-summary');
+  if (!user.moto) {
+    ms.innerHTML = `<p style="color:var(--muted);font-size:.875rem">No registraste tu moto aún. <a href="#" onclick="showPanel('moto');openMotoModal()" style="color:var(--orange)">Agregar ahora →</a></p>`;
+  } else {
+    const m = user.moto;
+    ms.innerHTML = `
+      <div class="moto-card-header">
+        <div class="moto-card-brand">${m.marca} ${m.modelo} ${m.año}</div>
+        <div class="moto-card-placa">${m.placa}</div>
+      </div>
+      <div class="moto-info-grid">
+        <div class="moto-info-item"><div class="moto-info-lbl">Color</div><div class="moto-info-val">${m.color}</div></div>
+        <div class="moto-info-item"><div class="moto-info-lbl">Km actuales</div><div class="moto-info-val">${m.km.toLocaleString()} km</div></div>
+      </div>`;
+  }
+
+  // ── DASH ALERTS
+  const da = document.getElementById('dash-alerts');
+  da.innerHTML = alerts.length === 0
+    ? '<p style="color:var(--muted);font-size:.875rem">✅ Todo en orden. Sin alertas activas.</p>'
+    : alerts.slice(0,4).map(renderAlertItem).join('');
+
+  // ── MOTO FULL
+  const mf = document.getElementById('moto-full');
+  if (!user.moto) {
+    mf.innerHTML = `<div class="dash-block"><p style="color:var(--muted)">No registraste tu moto. Hacé clic en "Editar datos" para agregarla.</p></div>`;
+  } else {
+    const m = user.moto;
+    mf.innerHTML = `<div class="dash-block">
+      <div class="moto-card-header">
+        <div class="moto-card-brand">${m.marca} ${m.modelo} <span style="color:var(--muted);font-size:.9rem">(${m.año})</span></div>
+        <div class="moto-card-placa">${m.placa}</div>
+      </div>
+      <div class="moto-info-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="moto-info-item"><div class="moto-info-lbl">Color</div><div class="moto-info-val">${m.color}</div></div>
+        <div class="moto-info-item"><div class="moto-info-lbl">Año</div><div class="moto-info-val">${m.año}</div></div>
+        <div class="moto-info-item"><div class="moto-info-lbl">Placa</div><div class="moto-info-val">${m.placa}</div></div>
+      </div>
+      <div class="km-bar-wrap">
+        <div class="km-bar-head"><span>Km recorridos</span><span style="color:var(--orange)">${m.km.toLocaleString()} km</span></div>
+        <div class="km-bar"><div class="km-fill" style="width:${Math.min(m.km/100000*100,100)}%"></div></div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:4px">Estimado a 100.000 km de vida útil</div>
+      </div>
+    </div>`;
+  }
+
+  // ── MANTENIMIENTOS LIST
+  const ml = document.getElementById('mant-list');
+  if (!user.mantenimientos?.length) {
+    ml.innerHTML = '<p style="color:var(--muted)">No hay mantenimientos registrados.</p>';
+  } else {
+    ml.innerHTML = user.mantenimientos.map(m => {
+      const est = m.estado || mantEstado(m, km);
+      return `<div class="mant-row">
+        <div class="mant-estado ${est}"></div>
+        <div class="mant-tipo">${m.tipo}</div>
+        ${mantTag(est)}
+        <div class="mant-meta">Próx: ${m.prox_km.toLocaleString()} km</div>
+        <div class="mant-meta">${m.fecha}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── DOCUMENTOS
+  const dg = document.getElementById('doc-grid');
+  if (!user.documentos?.length) {
+    dg.innerHTML = '<p style="color:var(--muted)">No hay documentos registrados.</p>';
+  } else {
+    dg.innerHTML = user.documentos.map(d => {
+      const est = docEstado(d.vence);
+      return `<div class="doc-card">
+        <div class="doc-card-head"><div class="doc-card-name">${d.nombre}</div>${estadoTag(est)}</div>
+        <div class="doc-card-vence">Vence: ${d.vence}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── ALL ALERTS
+  const aa = document.getElementById('all-alerts');
+  aa.innerHTML = alerts.length === 0
+    ? '<p style="color:var(--muted)">✅ Sin alertas. Todo está al día.</p>'
+    : alerts.map(renderAlertItem).join('');
+}
+
+// ── MODALS ────────────────────────────────────────────────────
+function openMotoModal() {
+  const user = getUser();
+  if (user?.moto) {
+    document.getElementById('m-marca').value  = user.moto.marca;
+    document.getElementById('m-modelo').value = user.moto.modelo;
+    document.getElementById('m-anio').value   = user.moto.año;
+    document.getElementById('m-color').value  = user.moto.color;
+    document.getElementById('m-placa').value  = user.moto.placa;
+    document.getElementById('m-km').value     = user.moto.km;
+  }
+  document.getElementById('modal-moto').classList.add('open');
+}
+function saveMoto() {
+  const user = getUser();
+  user.moto = {
+    marca:  document.getElementById('m-marca').value,
+    modelo: document.getElementById('m-modelo').value,
+    año:    +document.getElementById('m-anio').value,
+    color:  document.getElementById('m-color').value,
+    placa:  document.getElementById('m-placa').value,
+    km:     +document.getElementById('m-km').value,
+  };
+  saveUser(user); closeModal('modal-moto'); render();
+}
+
+function openMantModal() { document.getElementById('modal-mant').classList.add('open'); }
+function saveMant() {
+  const user = getUser();
+  if (!user.mantenimientos) user.mantenimientos = [];
+  const km  = +document.getElementById('mant-km').value;
+  const prox = +document.getElementById('mant-prox').value;
+  user.mantenimientos.unshift({
+    tipo:    document.getElementById('mant-tipo').value,
+    fecha:   document.getElementById('mant-fecha').value,
+    km, prox_km: prox,
+    estado:  mantEstado({ prox_km: prox }, user.moto?.km || 0)
+  });
+  saveUser(user); closeModal('modal-mant'); render();
+}
+
+function openDocModal() { document.getElementById('modal-doc').classList.add('open'); }
+function saveDoc() {
+  const user = getUser();
+  if (!user.documentos) user.documentos = [];
+  const vence = document.getElementById('doc-vence').value;
+  user.documentos.push({
+    nombre: document.getElementById('doc-nombre').value,
+    vence,
+    estado: docEstado(vence)
+  });
+  saveUser(user); closeModal('modal-doc'); render();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function logout() {
+  localStorage.removeItem('bm_session');
+  window.location.href = 'auth.html';
+}
+
+render();
+</script>
+</body>
+</html>
