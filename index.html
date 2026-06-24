@@ -171,15 +171,89 @@
         <div class="contact-info-item"><div class="contact-info-icon">✉️</div><span class="contact-info-text">BikeManagerAssistant@bikemanager.com.co</span></div>
         <div class="contact-info-item"><div class="contact-info-icon">📍</div><span class="contact-info-text">Av. Libertador 1234, CABA</span></div>
       </div>
-      <form class="form" onsubmit="return false">
+      <form class="form" id="contactForm">
+
         <div class="form-row">
-          <div class="form-field"><label class="form-label">Nombre Completo *</label><input type="text" class="form-input" placeholder="Ingrese su nombre completo" minlength="3" maxlength="50" required></div>
-          <div class="form-field"><label class="form-label">Teléfono *</label><input type="tel" class="form-input" placeholder="Ingresa Tu Numero" minlength="10" maxlength="14" required/></div>
+
+          <div class="form-field">
+            <label class="form-label">Nombre Completo *</label>
+
+            <input
+              type="text"
+              class="form-input"
+              placeholder="Ingrese su nombre completo"
+              minlength="3"
+              maxlength="50"
+              pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+"
+              title="Solo se permiten letras y espacios"
+              autocomplete="name"
+              required
+            >
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Teléfono *</label>
+
+            <input
+              type="tel"
+              class="form-input"
+              placeholder="3001234567"
+              pattern="^3[0-9]{9}$"
+              maxlength="10"
+              inputmode="numeric"
+              title="Ingrese un celular colombiano válido"
+              autocomplete="tel"
+              required
+            >
+          </div>
+
         </div>
-        <div class="form-field"><label class="form-label">Correo Electrónico *</label><input type="email" class="form-input" placeholder="Correo electrónico" required></div>
-        <div class="form-field"><label class="form-label">Motocicleta *</label><input type="text" class="form-input" placeholder="Marca y modelo de la motocicleta" required></div>
-        <div class="form-field"><label class="form-label">Consulta</label><textarea class="form-textarea" rows="4" placeholder="Describí tu consulta..."></textarea></div>
-        <button type="submit" class="btn-submit">Enviar consulta</button>
+
+        <div class="form-field">
+          <label class="form-label">Correo Electrónico *</label>
+
+          <input
+            type="email"
+            class="form-input"
+            placeholder="Correo electrónico"
+            maxlength="100"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Motocicleta *</label>
+
+          <input
+            type="text"
+            class="form-input"
+            placeholder="Marca y modelo de la motocicleta"
+            minlength="3"
+            maxlength="60"
+            pattern="[A-Za-z0-9ÁÉÍÓÚáéíóúÑñ .-]+"
+            title="Solo letras, números, puntos y guiones"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Consulta *</label>
+
+          <textarea
+            class="form-textarea"
+            rows="4"
+            minlength="10"
+            maxlength="500"
+            placeholder="Describí tu consulta..."
+            required
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          Enviar consulta
+        </button>
+
       </form>
     </div>
   </div>
@@ -219,6 +293,51 @@
     const isOpen = answer.classList.toggle('open');
     arrow.classList.toggle('open', isOpen);
   }
+</script>
+
+<script>
+
+function sanitize(text) {
+  return text
+    .replace(/</g, '')
+    .replace(/>/g, '')
+    .replace(/"/g, '')
+    .replace(/'/g, '')
+    .trim();
+}
+
+document
+.getElementById('contactForm')
+.addEventListener('submit', function(e){
+
+    e.preventDefault();
+
+    if(!this.checkValidity()){
+
+        this.reportValidity();
+        return;
+
+    }
+
+    const inputs =
+      this.querySelectorAll('input, textarea');
+
+    inputs.forEach(input => {
+        input.value = sanitize(input.value);
+    });
+
+    const btn =
+      this.querySelector('.btn-submit');
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    // Aquí va tu fetch() o lógica de envío
+
+    console.log('Formulario válido');
+
+});
+
 </script>
 </body>
 </html>
