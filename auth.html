@@ -65,11 +65,19 @@
 
         <div class="form-field">
           <label class="form-label">Correo electrónico</label>
-          <input type="email" id="login-email" class="form-input" placeholder="tu@correo.com" />
+          <input type="email" id="login-email" class="form-input" placeholder="tu@correo.com" required maxlength="100" autocomplete="email"/>
         </div>
         <div class="form-field">
           <label class="form-label">Contraseña</label>
-          <input type="password" id="login-pass" class="form-input" placeholder="••••••••" />
+          <input type="password" id="login-pass" class="form-input" placeholder="••••••••" required minlength="8" maxlength="20" autocomplete="current-password"/>
+        </div>
+        <div class="password-rules">
+          <small>
+            ✓ Mínimo 8 caracteres<br>
+            ✓ Una mayúscula<br>
+            ✓ Una minúscula<br>
+            ✓ Un número
+          </small>
         </div>
         <button class="btn-submit" onclick="doLogin()">Iniciar sesión</button>
 
@@ -93,28 +101,28 @@
         <div class="form-row">
           <div class="form-field">
             <label class="form-label">Nombre</label>
-            <input type="text" id="reg-nombre" class="form-input" placeholder="Nombre" />
+            <input type="text" id="reg-nombre" class="form-input" placeholder="Nombre" required minlength="3" maxlength="50" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" />
           </div>
           <div class="form-field">
             <label class="form-label">Apellido</label>
-            <input type="text" id="reg-apellido" class="form-input" placeholder="Apellido" />
+            <input type="text" id="reg-apellido" class="form-input" placeholder="Apellido" required minlength="2" maxlength="50" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+"/>
           </div>
         </div>
         <div class="form-field">
           <label class="form-label">Correo electrónico</label>
-          <input type="email" id="reg-email" class="form-input" placeholder="tu@correo.com" />
+          <input type="email" id="reg-email" class="form-input" placeholder="tu@correo.com" required maxlength="100" autocomplete="email"/>
         </div>
         <div class="form-field">
           <label class="form-label">Teléfono</label>
-          <input type="tel" id="reg-tel" class="form-input" placeholder="+57 300 000 0000" />
+          <input type="tel" id="reg-tel" class="form-input" placeholder="3001234567" required maxlength="10" pattern="^3[0-9]{9}$" title="Ingrese un celular válido"/>
         </div>
         <div class="form-field">
           <label class="form-label">Contraseña</label>
-          <input type="password" id="reg-pass" class="form-input" placeholder="Mínimo 6 caracteres" />
+          <input type="password" id="reg-pass" class="form-input" placeholder="Contraseña segura" required minlength="8" maxlength="20" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,20}$" title="Debe contener mayúscula, minúscula y número"/>
         </div>
         <div class="form-field">
           <label class="form-label">Confirmar contraseña</label>
-          <input type="password" id="reg-pass2" class="form-input" placeholder="Repetí la contraseña" />
+          <input type="password" id="reg-pass2" class="form-input" placeholder="Repetí la contraseña" required minlength="8" maxlength="20"/>
         </div>
         <button class="btn-submit" onclick="doRegister()">Crear cuenta</button>
 
@@ -202,10 +210,23 @@
     doLogin();
   }
 
+  function sanitizeInput(text) {
+    return text
+      .replace(/</g, "")
+      .replace(/>/g, "")
+      .replace(/"/g, "")
+      .replace(/'/g, "")
+      .trim();
+  }
+
+  function isStrongPassword(password) {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,20}$/.test(password);
+  }
+
   // ─── REGISTER ────────────────────────────────────────────────
   function doRegister() {
-    const nombre   = document.getElementById('reg-nombre').value.trim();
-    const apellido = document.getElementById('reg-apellido').value.trim();
+    const nombre = sanitizeInput(document.getElementById('reg-nombre').value);
+    const apellido = sanitizeInput(document.getElementById('reg-apellido').value);
     const email    = document.getElementById('reg-email').value.trim();
     const tel      = document.getElementById('reg-tel').value.trim();
     const pass     = document.getElementById('reg-pass').value;
@@ -214,8 +235,8 @@
     if (!nombre || !apellido || !email || !tel || !pass || !pass2) {
       showMsg('msg-register','error','Completá todos los campos.'); return;
     }
-    if (pass.length < 6) {
-      showMsg('msg-register','error','La contraseña debe tener al menos 6 caracteres.'); return;
+    if (!isStrongPassword(pass)) { 
+      showMsg('msg-register', 'error', 'La contraseña debe tener mayúscula, minúscula y número.'); return;
     }
     if (pass !== pass2) {
       showMsg('msg-register','error','Las contraseñas no coinciden.'); return;
@@ -235,6 +256,25 @@
     showMsg('msg-register','success','Cuenta creada. Podés iniciar sesión.');
     setTimeout(() => switchTab('login'), 1200);
   }
+
+  //BLOQUEAR PEGAR EN CONFIRMAR CONTRASEÑA
+  document
+  .getElementById('reg-pass2')
+  .addEventListener('paste', function(e){
+
+    e.preventDefault();
+
+  });
+
+  document
+  .getElementById('reg-pass')
+  .addEventListener('keypress', function(e){
+
+    if(e.key === ' '){
+        e.preventDefault();
+    }
+
+  }); 
 
   // Redirigir si ya hay sesión activa
   const session = localStorage.getItem('bm_session');
